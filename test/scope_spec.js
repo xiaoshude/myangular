@@ -330,6 +330,26 @@ describe('Scope', function () {
       expect(scope.evaluateAsync).toBe(true);
       expect(scope.evaluateImmediately).toBe(false);
     });
+    it('has a $$phase field whose value is the current digest phase', function () {
+      scope.aVal = 3;
+      var phaseInWatchFunction = undefined;
+      var phaseInListenerFunction = undefined;
+      var phaseInApplyFunction = undefined;
+      scope.$watch(function (scope) {
+        phaseInWatchFunction = scope.$$phase;
+        return scope.aVal;
+      }, function (scope) {
+        phaseInListenerFunction = scope.$$phase;
+      });
+
+      scope.$apply(function (scope) {
+        phaseInApplyFunction = scope.$$phase;
+      });
+
+      expect(phaseInWatchFunction).toBe('$digest');
+      expect(phaseInListenerFunction).toBe('$digest');
+      expect(phaseInApplyFunction).toBe('$apply');
+    });
   });
 });
 

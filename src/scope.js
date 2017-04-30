@@ -11,6 +11,7 @@ function Scope() {
   this.$$watchers = [];
   this.$$lastDirtyWatch = null;
   this.$$asyncQueue = [];
+  this.$$phase = null;
 }
 
 Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
@@ -61,6 +62,7 @@ Scope.prototype.$digest = function () {
   this.$$lastDirtyWatch = null;
   var TTL = 10;
   var dirty = false;
+  this.$beginPhase('$digest');
   do {
     dirty = this.$digestOnce();
     TTL--;
@@ -92,5 +94,15 @@ Scope.prototype.$evalAsync = function (expr) {
     scope: this,
     expression: expr
   });
+};
+
+Scope.prototype.$beginPhase = function (phase) {
+  if (this.$$phase) {
+    throw this.$$phase + ' already in progress.';
+  }
+  this.$$phase = phase;
+};
+Scope.prototype.$clearPhase = function () {
+  this.$$phase = null;
 };
 module.exports = Scope;
