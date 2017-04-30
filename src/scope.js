@@ -62,12 +62,16 @@ Scope.prototype.$digest = function () {
   var TTL = 10;
   var dirty = false;
   do {
+    while (this.$$asyncQueue.length) {
+      var asyncTask = this.$$asyncQueue.shift();
+      asyncTask.scope.$eval(asyncTask.expression);
+    }
     dirty = this.$digestOnce();
     TTL--;
-    if (dirty && !TTL) {
+    if ((dirty || this.$$asyncQueue.length )&& !TTL) {
       throw '10 iteration reached';
     }
-  } while (dirty);
+  } while (dirty || this.$$asyncQueue.length);
 };
 Scope.prototype.$$areEqual = function (newVal, oldVal, valueEq) {
   if (valueEq) {
