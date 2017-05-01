@@ -3,11 +3,11 @@
   "browserify": true,
   "devel": true,
   "globals": {
-    "jasmine": false,
-    "describe": false,
-    "it": false,
-    "expect": false,
-    "beforeEach": false,
-    "afterEach": false
+    "jasmine": true,
+    "describe": true,
+    "it": true,
+    "expect": true,
+    "beforeEach": true,
+    "afterEach": true
   }
 }
