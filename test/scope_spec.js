@@ -413,6 +413,22 @@ describe('Scope', function () {
         done();
       }, 50);
     });
+    it('catches exceptions in $evalAsync', function (done) {
+      scope.aVal = 3;
+      var counter = 0;
+      scope.$watch(function (scope) {
+        return scope.aVal;
+      }, function (newVal, oldVal, scope) {
+        counter++;
+      });
+      scope.$evalAsync(function () {
+        throw 'Error';
+      });
+      setTimeout(function () {
+        expect(counter).toBe(1);
+        done();
+      }, 50);
+    });
   });
   describe('$applyAsync', function () {
     var scope;
@@ -475,6 +491,22 @@ describe('Scope', function () {
         done();
       }, 50);
     });
+    it('catches exceptions in $applyAsync', function (done) {
+      var applied = false;
+      scope.$applyAsync(function () {
+        throw 'Error';
+      });
+      scope.$applyAsync(function () {
+        throw 'Error';
+      });
+      scope.$applyAsync(function () {
+        applied = true;
+      });
+      setTimeout(function () {
+        expect(applied).toBe(true);
+        done();
+      }, 50);
+    });
   });
   describe('$$postDigest', function () {
     var scope;
@@ -508,6 +540,96 @@ describe('Scope', function () {
       expect(watchedVal).toBe(3);
       scope.$digest();
       expect(watchedVal).toBe(5);
+    });
+    it('catches exceptions in $$postDigest', function () {
+      var didRun = false;
+      scope.$$postDigest(function () {
+        throw 'Error';
+      });
+      scope.$$postDigest(function () {
+        didRun = true;
+      });
+      scope.$digest();
+      expect(didRun).toBe(true);
+    });
+  });
+  describe('$watchGroup', function () {
+    var scope;
+    beforeEach(function () {
+      scope = new Scope();
+    });
+    /*it('takes watches as an array and calls listener with arrays', function () {
+      var gotNewVals, gotOldVals;
+      scope.aVal = 1;
+      scope.bVal = 2;
+      scope.$watchGroup([function (scope) {
+        return scope.aVal;
+      }, function (scope) {
+        return scope.bVal;
+      }], function (newVal, oldVal) {
+        gotNewVals = newVal;
+        gotOldVals = oldVal;
+      });
+      scope.$digest();
+      expect(gotNewVals).toEqual([1, 2]);
+      expect(gotOldVals).toEqual([1, 2]);
+    });
+    it('only calls listener once per digest', function () {
+      var counter = 0;
+      scope.aVal = 1;
+      scope.bVal = 2;
+      scope.$watchGroup([
+        function (scope) {
+          return scope.aVal;
+        },
+        function (scope) {
+          return scope.bVal;
+        }
+      ], function () {
+        counter++;
+      });
+      scope.$digest();
+      expect(counter).toBe(1);
+    });
+    it('use the same array of old and new values on the first run', function () {
+      var gotNewVals, gotOldVals;
+      scope.aVal = 1;
+      scope.bVal = 2;
+      scope.$watchGroup([function (scope) {
+        return scope.aVal;
+      }, function (scope) {
+        return scope.bVal;
+      }], function (newVals, oldVals) {
+        gotNewVals = newVals;
+        gotOldVals = oldVals;
+      });
+      scope.$digest();
+      expect(gotNewVals).toBe(gotOldVals);
+    });*/
+    it('use different arrays for old and new values on subsequent runs', function () {
+      var gotNewVals, gotOldVals;
+      scope.aVal = 1;
+      scope.bVal = 2;
+      scope.$watchGroup([function (scope) {
+        console.log('scope.aVal', scope.aVal);
+        return scope.aVal;
+      }, function (scope) {
+        console.log('scope.bVal', scope.bVal);
+
+        return scope.bVal;
+      }], function (newVals, oldVals) {
+        console.log('scope.$$watchers', scope.$$watchers);
+
+        gotNewVals = newVals;
+        gotOldVals = oldVals;
+      });
+      scope.$digest();
+      console.log('scope.$$watchers', scope.$$watchers);
+      scope.bVal = 3;
+      scope.$digest();
+
+      expect(gotNewVals).toEqual([1, 3]);
+      expect(gotOldVals).toEqual([1, 2]);
     });
   });
 });
