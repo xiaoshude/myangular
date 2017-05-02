@@ -558,7 +558,7 @@ describe('Scope', function () {
     beforeEach(function () {
       scope = new Scope();
     });
-    /*it('takes watches as an array and calls listener with arrays', function () {
+    it('takes watches as an array and calls listener with arrays', function () {
       var gotNewVals, gotOldVals;
       scope.aVal = 1;
       scope.bVal = 2;
@@ -605,31 +605,52 @@ describe('Scope', function () {
       });
       scope.$digest();
       expect(gotNewVals).toBe(gotOldVals);
-    });*/
+    });
     it('use different arrays for old and new values on subsequent runs', function () {
       var gotNewVals, gotOldVals;
       scope.aVal = 1;
       scope.bVal = 2;
       scope.$watchGroup([function (scope) {
-        console.log('scope.aVal', scope.aVal);
         return scope.aVal;
       }, function (scope) {
-        console.log('scope.bVal', scope.bVal);
-
         return scope.bVal;
       }], function (newVals, oldVals) {
-        console.log('scope.$$watchers', scope.$$watchers);
-
         gotNewVals = newVals;
         gotOldVals = oldVals;
       });
       scope.$digest();
-      console.log('scope.$$watchers', scope.$$watchers);
       scope.bVal = 3;
       scope.$digest();
 
       expect(gotNewVals).toEqual([1, 3]);
       expect(gotOldVals).toEqual([1, 2]);
+    });
+    it('call the listener once when the watch array is empty', function () {
+      var gotNewVals, gotOldVals;
+      scope.$watchGroup([], function (newVals, oldVals) {
+        gotNewVals = newVals;
+        gotOldVals = oldVals;
+      });
+      scope.$digest();
+      expect(gotNewVals).toEqual([]);
+      expect(gotOldVals).toEqual([]);
+    });
+    it('can be deregistered', function () {
+      var counter = 0;
+      scope.aVal = 1;
+      scope.bVal = 2;
+      var deRegisterFn = scope.$watchGroup([function (scope) {
+        return scope.aVal;
+      }, function (scope) {
+        return scope.bVal;
+      }], function () {
+        counter++;
+      });
+      scope.$digest();
+      scope.aVal = 3;
+      deRegisterFn();
+      scope.$digest();
+      expect(counter).toBe(1);
     });
   });
 });
